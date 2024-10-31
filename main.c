@@ -34,9 +34,14 @@
 uint8_t task_10ms =FALSE, task_100ms=FALSE, task_500ms=FALSE;
 uint16_t timer_cnt=0;
 
+double accel_pos = 0;
+double decel_pos = 0;
+double steer_angle = 0;
 /******************************************************************************
 * External Variables
 ******************************************************************************/
+//teszteles
+double pose [3] = {0,0,0};
 
 
 /******************************************************************************
@@ -74,13 +79,42 @@ int main(void)
 	timer_init();
 	lcd_init();
 	external_int_init();
-	uart0_init();
+	uart0_init(BAUD9600);
 	
 	sei();
 	/* Replace with your application code */
 	while(1)
 	{
 		
+		// CAN halozat kommunikacio
+		if(task_10ms == TRUE)
+		{
+			// speed, pos kikuldese CAN-en
+			task_10ms = FALSE;
+		}
+		
+		
+		//LCD megjelenites
+		if(task_500ms == TRUE)
+		{
+			char write_string[50];
+			sprintf(write_string,"pos:%d,%d pszi:%d",pose[0], pose[1], pose[3]);
+			lcd_set_cursor_position(0);
+			lcd_write_string(write_string);
+			
+			task_500ms = FALSE;
+		}
+		
+		
+		//UART kommunikacio
+		if(task_100ms == TRUE)
+		{
+			char write_string[50];
+			sprintf(write_string,"posx:%d posy:%d pszi:%d",pose[0], pose[1], pose[3]);
+			uart_write_string(write_string);
+			
+			task_100ms = FALSE;
+		}
 	}
 }
 
