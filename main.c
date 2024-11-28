@@ -39,12 +39,13 @@ double accel_pos = 0;
 double decel_pos = 0;
 double steer_angle = 0;
 
-uint8_t accel = 50;
-uint8_t decel = 0;
-double steer = 0;
+double accel = 0.5;
+double decel = 0;
+double steer = 0.01;
 
-uint16_t v_long = 0;
-uint16_t x, y, pszi_global = 0;
+double v_global = 0;
+double speed = 1.1;
+double global_x, global_y, global_pszi = 0;
 
 /******************************************************************************
 * External Variables
@@ -121,18 +122,20 @@ int main(void)
 		if(task_500ms == TRUE)
 		{
 			
-			v_long = calculate_long_speed(accel, decel);
+			v_global = calculate_long_speed(accel, decel);
 			calculate_lateral_speed(steer);
-			x = calculate_global_x();
-			y = calculate_global_y();
-			pszi_global = calculate_global_pszi();
+			calculate_global_pose();
 			
+			global_x = posex();
+			global_y = posey();
+			global_pszi = pszit();
+		
 			
 			char write_string[50];
-			sprintf(write_string,"pos:%3d,%3d", (uint8_t)v_long, (uint8_t)y);
+			sprintf(write_string,"pos:%4d,%4d", (uint16_t)global_x, (uint16_t)global_y);
 			lcd_set_cursor_position(0);
 			lcd_write_string(write_string);
-			sprintf(write_string,"pszi:%3d", (uint8_t)(pszi_global*(180/M_PI)));
+			sprintf(write_string,"pszi:%3d", (uint8_t)(global_pszi*(180/M_PI)));
 			lcd_set_cursor_position(40);
 			lcd_write_string(write_string);
 			
@@ -144,12 +147,12 @@ int main(void)
 		//UART kommunikacio
 		if(task_100ms == TRUE)
 		{
-			 uint8_t x_pos_low = (uint8_t)x; // Alacsony byte
-			 uint8_t x_pos_high = (uint8_t)(x >> 8); // Magas byte
-			 uint8_t y_pos_low = (uint8_t)y; // Alacsony byte
-			 uint8_t y_pos_high = (uint8_t)(y >> 8); // Magas byte
-			 uint8_t pszi_global_low = (uint8_t)pszi_global; // Alacsony byte
-			 uint8_t pszi_global_high = (uint8_t)(pszi_global >> 8); // Magas byte
+			 uint8_t x_pos_low = (uint8_t)global_x; // Alacsony byte
+			 uint8_t x_pos_high = (uint8_t)((uint8_t)global_x >> 8); // Magas byte
+			 uint8_t y_pos_low = (uint8_t)global_y; // Alacsony byte
+			 uint8_t y_pos_high = (uint8_t)((uint8_t)global_y >> 8); // Magas byte
+			 uint8_t pszi_global_low = (uint8_t)global_pszi; // Alacsony byte
+			 uint8_t pszi_global_high = (uint8_t)((uint8_t)global_pszi>> 8); // Magas byte
 			 
 			 // Checksum kiszámítása
 			 uint8_t checksum = 0xAA ^ x_pos_low ^ x_pos_high ^ y_pos_low ^ y_pos_high ^ pszi_global_low ^ pszi_global_high;
