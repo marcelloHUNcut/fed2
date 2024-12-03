@@ -11,9 +11,9 @@ namespace visuals
         private SerialPort serialPort;
 
         // Változók tárolják az aktuális pozíciót és orientációt
-        int pos_x = 0;
-        int pos_y = 0;
-        int orientation = 0;
+        uint pos_x = 0;
+        uint pos_y = 0;
+        uint orientation = 0;
 
         private const byte StartByte = 0x02; // Start byte
         private const byte EndByte = 0x03;   // End byte
@@ -91,32 +91,28 @@ namespace visuals
         }
         private void ProcessMessage(List<byte> message)
         {
-            // Ellenőrizzük, hogy az üzenet megfelelő start és end byte-tal rendelkezik
-            if (message.Count < 8 || message[0] != StartByte || message[^1] != EndByte)
-                return; // Minimum 8 byte (Start + 6 adat + End)
-
-            // Start és End byte eltávolítása
-            message.RemoveAt(0); // Start byte
-            message.RemoveAt(message.Count - 1); // End byte
-
-            // Ellenőrizzük, hogy pontosan 6 adatbájt maradt-e
-            if (message.Count != 6)
-                return;
+            // Ellenőrizzük, hogy az üzenet formátuma helyes-e (minimum 8 byte és helyes Start/End byte)
+            if (message.Count != 8 || message[0] != StartByte || message[^1] != EndByte) return;
 
             try
             {
-                // Az üzenet adatainak külön kezelése
-                int x_low = message[0];      // X alsó 8 bit
-                int x_high = message[1];     // X felső 8 bit
-                int y_low = message[2];      // Y alsó 8 bit
-                int y_high = message[3];     // Y felső 8 bit
-                int pszi_low = message[4];   // Pszi alsó 8 bit
-                int pszi_high = message[5];  // Pszi felső 8 bit
+                // Adatbájtok beolvasása (start és end byte figyelmen kívül hagyása)
+                byte x_low = message[1];
+                byte x_high = message[2];
+                byte y_low = message[3];
+                byte y_high = message[4];
+                byte pszi_low = message[5];
+                byte pszi_high = message[6];
 
-                // 16 bites értékek összeállítása kis-endian módon
+                // Mukodo
                 pos_x = (x_high << 8) | x_low; // High byte balra tolása és Low byte hozzáadása
                 pos_y = (y_high << 8) | y_low;
                 orientation = (pszi_high << 8) | pszi_low;
+		
+		        //sketchy de talan jo
+		        //pos_x = ((int)x_high)*256 + (int)x_low; // x_high bitshiftelese 8-al (2^8-al valo szorzas), majd x_low hozzaadasa ==> (konkatenalas)
+		        //pos_y = ((int)y_high)*256 + (int)y_low; // y_high bitshiftelese 8-al (2^8-al valo szorzas), majd y_low hozzaadasa ==> (konkatenalas)
+		        //orientation = ((int)pszi_high)*256 + (int)pszi_low; // pszi_high bitshiftelese 8-al (2^8-al valo szorzas), majd pszi_low hozzaadasa ==> (konkatenalas)
 
                 // UI frissítése
                 UpdateLabel();
