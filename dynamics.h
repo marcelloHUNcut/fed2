@@ -23,12 +23,11 @@
 /******************************************************************************
 * Global Function Declarations
 ******************************************************************************/
-double calculate_long_speed(double g_allas, double f_allas);
-void calculate_lateral_speed(double delta);
-void calculate_global_pose(void);
-double posex(void);
-double posey(void);
-double pszit(void);
+uint32_t calculate_long_speed(uint32_t g_allas, uint32_t f_allas);
+void calculate_lateral_speed(uint32_t delta);
+uint32_t calculate_global_x(void);
+uint32_t calculate_global_y(void);
+uint32_t calculate_global_pszi(void);
 
 
 
